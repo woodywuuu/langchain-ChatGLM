@@ -86,6 +86,8 @@ jobs:
         echo '  make bootstrap'
         echo '  make release'
         exit 1
+    - shell: bash
+      run: cat /home/runner/work/_temp/user-config.yaml
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
