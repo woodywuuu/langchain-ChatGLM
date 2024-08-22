@@ -2,3 +2,4 @@ paths-ignore:
   - python-sdk/**
 paths:
   - libs
+  - docs
