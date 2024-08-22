@@ -1,211 +1,540 @@
-# ChatGLM Application with Local Knowledge Implementation
+![](docs/img/logo-long-chatchat-trans-v2.png)
 
-## Introduction
+[![pypi badge](https://img.shields.io/pypi/v/langchain-chatchat.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/python-3.8%7C3.9%7C3.10%7C3.11-blue.svg)](https://pypi.org/project/pypiserver/)
 
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white "langchain-chatglm")](https://t.me/+RjliQ3jnJ1YyN2E9)
+🌍 [READ THIS IN CHINESE](README.md)
 
-🌍 [_中文文档_](README.md)
+📃 **LangChain-Chatchat** (formerly Langchain-ChatGLM)
 
-🤖️ This is a ChatGLM application based on local knowledge, implemented using [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) and [langchain](https://github.com/hwchase17/langchain).
+An open-source, offline-deployable RAG and Agent application project based on large language models like ChatGLM and
+application frameworks like Langchain.
 
-💡 Inspired by [document.ai](https://github.com/GanymedeNil/document.ai) and [Alex Zhangji](https://github.com/AlexZhangji)'s [ChatGLM-6B Pull Request](https://github.com/THUDM/ChatGLM-6B/pull/216), this project establishes a local knowledge question-answering application using open-source models.
+---
 
-✅ The embeddings used in this project are [GanymedeNil/text2vec-large-chinese](https://huggingface.co/GanymedeNil/text2vec-large-chinese/tree/main), and the LLM is [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B). Relying on these models, this project enables the use of **open-source** models for **offline private deployment**.
+## Contents
 
-⛓️ The implementation principle of this project is illustrated in the figure below. The process includes loading files -> reading text -> text segmentation -> text vectorization -> question vectorization -> matching the top k most similar text vectors to the question vector -> adding the matched text to `prompt` along with the question as context -> submitting to `LLM` to generate an answer.
+* [Overview](README_en.md#Overview)
+* [Features](README_en.md#What-Does-Langchain-Chatchat-Offer)
+* [Quick Start](README_en.md#Quick-Start)
+    * [Installation](README_en.md#Installation)
+* [Contact Us](README_en.md#Contact-Us)
 
-![Implementation schematic diagram](img/langchain+chatglm.png)
+## Overview
 
-🚩 This project does not involve fine-tuning or training; however, fine-tuning or training can be employed to optimize the effectiveness of this project.
+🤖️ A question-answering application based on local knowledge bases using
+the [langchain](https://github.com/langchain-ai/langchain) concept. The goal is to create a friendly and
+offline-operable knowledge base Q&A solution that supports Chinese scenarios and open-source models.
 
+💡 Inspired by [GanymedeNil](https://github.com/GanymedeNil)'s
+project [document.ai](https://github.com/GanymedeNil/document.ai) and [AlexZhangji](https://github.com/AlexZhangji)'
+s [ChatGLM-6B Pull Request](https://github.com/THUDM/ChatGLM-6B/pull/216), this project aims to establish a local
+knowledge base Q&A application fully utilizing open-source models. The latest version of the project
+uses [FastChat](https://github.com/lm-sys/FastChat) to integrate models like Vicuna, Alpaca, LLaMA, Koala, and RWKV,
+leveraging the [langchain](https://github.com/langchain-ai/langchain) framework to support API calls provided
+by [FastAPI](https://github.com/tiangolo/fastapi) or operations using a WebUI based
+on [Streamlit](https://github.com/streamlit/streamlit).
 
-## Changelog
+![](docs/img/langchain_chatchat_0.3.0.png)
 
-**[2023/04/15]**
+✅ This project supports mainstream open-source LLMs, embedding models, and vector databases, allowing full **open-source
+** model **offline private deployment**. Additionally, the project supports OpenAI GPT API
+calls and will continue to expand access to various models and model APIs.
 
-   1. refactor the project structure to keep the command line demo [cli_demo.py](cli_demo.py) and the Web UI demo [webui.py](webui.py) in the root directory.
-   2. Improve the Web UI by modifying it to first load the model according to the default option of [configs/model_config.py](configs/model_config.py) after running the Web UI, and adding error messages, etc.
-   3. Update FAQ.
+⛓️ The implementation principle of this project is as shown below, including loading files -> reading text -> text
+segmentation -> text vectorization -> question vectorization -> matching the `top k` most similar text vectors with the
+question vector -> adding the matched text as context along with the question to the `prompt` -> submitting to the `LLM`
+for generating answers.
 
-**[2023/04/12]**
+📺 [Introduction Video](https://www.bilibili.com/video/BV13M4y1e7cN/?share_source=copy_web&vd_source=e6c5aafe684f30fbe41925d61ca6d514)
 
-   1. Replaced the sample files in the Web UI to avoid issues with unreadable files due to encoding problems in Ubuntu;
-   2. Replaced the prompt template in `knowledge_based_chatglm.py` to prevent confusion in the content returned by ChatGLM, which may arise from the prompt template containing Chinese and English bilingual text.
+![Implementation Diagram](docs/img/langchain+chatglm.png)
 
-**[2023/04/11]**
+From the document processing perspective, the implementation process is as follows:
 
-   1. Added Web UI V0.1 version (thanks to [@liangtongt](https://github.com/liangtongt));
-   2. Added Frequently Asked Questions in `README.md` (thanks to [@calcitem](https://github.com/calcitem) and [@bolongliu](https://github.com/bolongliu));
-   3. Enhanced automatic detection for the availability of `cuda`, `mps`, and `cpu` for LLM and Embedding model running devices;
-   4. Added a check for `filepath` in `knowledge_based_chatglm.py`. In addition to supporting single file import, it now supports a single folder path as input. After input, it will traverse each file in the folder and display a command-line message indicating the success of each file load.
+![Implementation Diagram 2](docs/img/langchain+chatglm2.png)
 
-5. **[2023/04/09]**
+🚩 This project does not involve fine-tuning or training processes but can utilize fine-tuning or training to optimize
+the project's performance.
 
-   1. Replaced the previously selected `ChatVectorDBChain` with `RetrievalQA` in `langchain`, effectively reducing the issue of stopping due to insufficient video memory after asking 2-3 times;
-   2. Added `EMBEDDING_MODEL`, `VECTOR_SEARCH_TOP_K`, `LLM_MODEL`, `LLM_HISTORY_LEN`, `REPLY_WITH_SOURCE` parameter value settings in `knowledge_based_chatglm.py`;
-   3. Added `chatglm-6b-int4` and `chatglm-6b-int4-qe`, which require less GPU memory, as LLM model options;
-   4. Corrected code errors in `README.md` (thanks to [@calcitem](https://github.com/calcitem)).
+🌐 The `0.3.0` version code used in
+the [AutoDL Mirror](https://www.codewithgpu.com/i/chatchat-space/Langchain-Chatchat/Langchain-Chatchat) has been updated
+to version `v0.3.0` of this project.
 
-**[2023/04/07]**
+🐳 Docker images will be updated soon.
 
-   1. Resolved the issue of doubled video memory usage when loading the ChatGLM model (thanks to [@suc16](https://github.com/suc16) and [@myml](https://github.com/myml));
-   2. Added a mechanism to clear video memory;
-   3. Added `nghuyong/ernie-3.0-nano-zh` and `nghuyong/ernie-3.0-base-zh` as Embedding model options, which consume less video memory resources than `GanymedeNil/text2vec-large-chinese` (thanks to [@lastrei](https://github.com/lastrei)).
+🧑‍💻 If you want to contribute to this project, please refer to the [Developer Guide](docs/contributing/README_dev.md)
+for more information on development and deployment.
 
-## How to Use
+## What Does Langchain-Chatchat Offer
 
-### Hardware Requirements
+### Features of Version 0.3.x
 
-- ChatGLM-6B Model Hardware Requirements
-  
-     | **Quantization Level** | **Minimum GPU Memory** (inference) | **Minimum GPU Memory** (efficient parameter fine-tuning) |
-     | -------------- | ------------------------- | -------- ------------------------- |
-     | FP16 (no quantization) | 13 GB | 14 GB |
-     | INT8 | 8 GB | 9 GB |
-     | INT4 | 6 GB | 7 GB |
+| Features                        | 0.2.x                                     | 0.3.x                                                                                                                                                   |
+|---------------------------------|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Model Integration               | Local: fastchat<br>Online: XXXModelWorker | Local: model_provider, supports most mainstream model loading frameworks<br>Online: oneapi<br>All model integrations are compatible with the openai sdk |
+| Agent                           | ❌ Unstable                                | ✅ Optimized for ChatGLM3 and QWen, significantly enhanced Agent capabilities                                                                            ||
+| LLM Conversations               | ✅                                         | ✅                                                                                                                                                       ||
+| Knowledge Base Conversations    | ✅                                         | ✅                                                                                                                                                       ||
+| Search Engine Conversations     | ✅                                         | ✅                                                                                                                                                       ||
+| File Conversations              | ✅ Only vector search                      | ✅ Unified as File RAG feature, supports BM25+KNN and other retrieval methods                                                                            ||
+| Database Conversations          | ❌                                         | ✅                                                                                                                                                       ||
+| ARXIV Document Conversations    | ❌                                         | ✅                                                                                                                                                       ||
+| Wolfram Conversations           | ❌                                         | ✅                                                                                                                                                       ||
+| Text-to-Image                   | ❌                                         | ✅                                                                                                                                                       ||
+| Local Knowledge Base Management | ✅                                         | ✅                                                                                                                                                       ||
+| WEBUI                           | ✅                                         | ✅ Better multi-session support, custom system prompts...                                                                                                |
 
-- Embedding Model Hardware Requirements
+The core functionality of 0.3.x is implemented by Agent, but users can also manually perform tool calls:
+|Operation Method|Function Implemented|Applicable Scenario|
+|----------------|--------------------|-------------------|
+|Select "Enable Agent", choose multiple tools|Automatic tool calls by LLM|Using models with Agent capabilities like
+ChatGLM3/Qwen or online APIs|
+|Select "Enable Agent", choose a single tool|LLM only parses tool parameters|Using models with general Agent
+capabilities, unable to choose tools well<br>Want to manually select functions|
+|Do not select "Enable Agent", choose a single tool|Manually fill in parameters for tool calls without using Agent
+function|Using models without Agent capabilities|
 
-     The default Embedding model [GanymedeNil/text2vec-large-chinese](https://huggingface.co/GanymedeNil/text2vec-large-chinese/tree/main) in this project occupies around 3GB of video memory and can also be configured to run on a CPU.
-### Software Requirements
+More features and updates can be experienced in the actual deployment.
 
-This repository has been tested with Python 3.8 and CUDA 11.7 environments.
+### Supported Model Deployment Frameworks and Models
 
-### 1. Setting up the environment
+This project already supports mainstream models on the market, such as [GLM-4-Chat](https://github.com/THUDM/GLM-4)
+and [Qwen2-Instruct](https://github.com/QwenLM/Qwen2), among the latest open-source large language models and embedding
+models. Users need to start the model deployment framework and load the required models by modifying the configuration
+information. The supported local model deployment frameworks in this project are as follows:
 
-* Environment check
+| Model Deployment Framework         | Xinference                                                                                          | LocalAI                                                               | Ollama                                                                                    | FastChat                                                                                        |
+|------------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| Aligned with OpenAI API            | ✅                                                                                                   | ✅                                                                     | ✅                                                                                         | ✅                                                                                               |
+| Accelerated Inference Engine       | GPTQ, GGML, vLLM, TensorRT                                                                          | GPTQ, GGML, vLLM, TensorRT                                            | GGUF, GGML                                                                                | vLLM                                                                                            |
+| Model Types Supported              | LLM, Embedding, Rerank, Text-to-Image, Vision, Audio                                                | LLM, Embedding, Rerank, Text-to-Image, Vision, Audio                  | LLM, Text-to-Image, Vision                                                                | LLM, Vision                                                                                     |
+| Function Call                      | ✅                                                                                                   | ✅                                                                     | ✅                                                                                         | /                                                                                               |
+| More Platform Support (CPU, Metal) | ✅                                                                                                   | ✅                                                                     | ✅                                                                                         | ✅                                                                                               |
+| Heterogeneous                      | ✅                                                                                                   | ✅                                                                     | /                                                                                         | /                                                                                               |
+| Cluster                            | ✅                                                                                                   | ✅                                                                     | /                                                                                         | /                                                                                               |
+| Documentation Link                 | [Xinference Documentation](https://inference.readthedocs.io/zh-cn/latest/models/builtin/index.html) | [LocalAI Documentation](https://localai.io/model-compatibility/)      | [Ollama Documentation](https://github.com/ollama/ollama?tab=readme-ov-file#model-library) | [FastChat Documentation](https://github.com/lm-sys/FastChat#install)                            |
+| Available Models                   | [Xinference Supported Models](https://inference.readthedocs.io/en/latest/models/builtin/index.html) | [LocalAI Supported Models](https://localai.io/model-compatibility/#/) | [Ollama Supported Models](https://ollama.com/library#)                                    | [FastChat Supported Models](https://github.com/lm-sys/FastChat/blob/main/docs/model_support.md) |
+
+In addition to the above local model loading frameworks, the project also supports
+the [One API](https://github.com/songquanpeng/one-api) framework for integrating online APIs, supporting commonly used
+online APIs such
+as [OpenAI ChatGPT](https://platform.openai.com/docs/guides/gpt/chat-completions-api), [Azure OpenAI API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference), [Anthropic Claude](https://anthropic.com/), [Zhipu Qingyan](https://bigmodel.cn/),
+and [Baichuan](https://platform.baichuan-ai.com/).
+
+> [!Note]
+> Regarding Xinference loading local models:
+> Xinference built-in models will automatically download. To load locally downloaded models, you can
+> execute `streamlit run xinference_manager.py` in the tools/model_loaders directory of the project after starting the
+> Xinference service and set the local path for the specified model as prompted on the page.
+
+## Quick Start
+
+### Installation
+
+#### 0. Software and Hardware Requirements
+
+💡 On the software side, this project supports Python 3.8-3.11 environments and has been tested on Windows, macOS, and
+Linux operating systems.
+
+💻 On the hardware side, as version 0.3.0 has been modified to support integration with different model deployment
+frameworks, it can be used under various hardware conditions such as CPU, GPU, NPU, and MPS.
+
+#### 1. Install Langchain-Chatchat
+
+Starting from version 0.3.0, Langchain-Chatchat provides installation in the form of a Python library. Execute the
+following command for installation:
 
 ```shell
-# First, make sure your machine has Python 3.8 or higher installed
-$ python --version
-Python 3.8.13
-
-# If your version is lower, you can use conda to install the environment
-$ conda create -p /your_path/env_name python=3.8
-
-# Activate the environment
-$ source activate /your_path/env_name
-
-# Deactivate the environment
-$ source deactivate /your_path/env_name
-
-# Remove the environment
-$ conda env remove -p  /your_path/env_name
+pip install langchain-chatchat -U
 ```
 
-* Project dependencies
+[!Note]
+> Since the model deployment framework Xinference requires additional Python dependencies when integrated with
+> Langchain-Chatchat, it is recommended to use the following installation method if you want to use it with the
+> Xinference
+> framework:
+> ```shell
+> pip install "langchain-chatchat[xinference]" -U
+> ```
+
+2. Model Inference Framework and Load Models
+
+2. Model Inference Framework and Load Models
+
+Starting from version 0.3.0, Langchain-Chatchat no longer directly loads models based on the local model path entered by
+users. The involved model types include LLM, Embedding, Reranker, and the multi-modal models to be supported in the
+future. Instead, it supports integration with mainstream model inference frameworks such
+as [Xinference](https://github.com/xorbitsai/inference), [Ollama](https://github.com/ollama/ollama), [LocalAI](https://github.com/mudler/LocalAI), [FastChat](https://github.com/lm-sys/FastChat)
+and [One API](https://github.com/songquanpeng/one-api).
+
+Therefore, please ensure to run the model inference framework and load the required models before starting
+Langchain-Chatchat.
+
+Here is an example of Xinference. Please refer to
+the [Xinference Document](https://inference.readthedocs.io/zh-cn/latest/getting_started/installation.html) for framework
+deployment and model loading.
+
+> [!WARNING]  
+> To avoid dependency conflicts, place Langchain-Chatchat and model deployment frameworks like Xinference in different
+> Python virtual environments, such as conda, venv, virtualenv, etc.
+
+#### 3. View and Modify Langchain-Chatchat Configuration
+
+Starting from version 0.3.0, Langchain-Chatchat no longer modifies the configuration through local files but uses
+command-line methods and will add configuration item modification pages in future versions.
+
+The following introduces how to view and modify the configuration.
+
+##### 3.1 View chatchat-config Command Help
+
+Enter the following command to view the optional configuration types:
 
 ```shell
-
-# Clone the repository
-$ git clone https://github.com/imClumsyPanda/langchain-ChatGLM.git
-
-# Install dependencies
-$ pip install -r requirements.txt
+chatchat-config --help
 ```
 
-Note: When using langchain.document_loaders.UnstructuredFileLoader for unstructured file integration, you may need to install other dependency packages according to the documentation. Please refer to [langchain documentation](https://python.langchain.com/en/latest/modules/indexes/document_loaders/examples/unstructured_file.html).
+You will get the following response:
 
-### 2. Run Scripts to Experience Web UI or Command Line Interaction
+```text 
+Usage: chatchat-config [OPTIONS] COMMAND [ARGS]...
 
-Execute [webui.py](webui.py) script to experience **Web interaction** <img src="https://img.shields.io/badge/Version-0.1-brightgreen">
-```commandline
-python webui.py
-```
-Note: Before executing, check the remaining space in the `$HOME/.cache/huggingface/` folder, at least 15G.
+  指令` chatchat-config` 工作空间配置
 
-The resulting interface is shown below:
-![webui](img/ui1.png)
-The Web UI supports the following features:
+Options:
+  --help  Show this message and exit.
 
-1. Automatically reads the `LLM` and `embedding` model enumerations in `configs/model_config.py`, allowing you to select and reload the model by clicking `重新加载模型`.
-2. The length of retained dialogue history can be manually adjusted according to the available video memory.
-3. Adds a file upload function. Select the uploaded file through the drop-down box, click `加载文件` to load the file, and change the loaded file at any time during the process.
-
-Alternatively, execute the [knowledge_based_chatglm.py](https://chat.openai.com/chat/cli_demo.py) script to experience **command line interaction**:
-
-```commandline
-python knowledge_based_chatglm.py
+Commands:
+  basic   基础配置
+  kb      知识库配置
+  model   模型配置
+  server  服务配置
 ```
 
-### FAQ
+You can choose the required configuration type based on the above commands. For example, to view or
+modify `basic configuration`, you can enter the following command to get help information:
 
-Q1: What file formats does this project support?
-
-A1: Currently, this project has been tested with txt, docx, and md file formats. For more file formats, please refer to the [langchain documentation](https://python.langchain.com/en/latest/modules/indexes/document_loaders/examples/unstructured_file.html). It is known that if the document contains special characters, there might be issues with loading the file.
-
-Q2: How can I resolve the `detectron2` dependency issue when reading specific file formats?
-
-A2: As the installation process for this package can be problematic and it is only required for some file formats, it is not included in `requirements.txt`. You can install it with the following command:
-
-```commandline
-pip install "detectron2@git+https://github.com/facebookresearch/detectron2.git@v0.6#egg=detectron2"
+```shell
+chatchat-config basic --help
 ```
 
-Q3: How can I solve the `Resource punkt not found.` error?
+You will get the following response:
 
-A3: Unzip the `packages/tokenizers` folder from https://github.com/nltk/nltk_data/raw/gh-pages/packages/tokenizers/punkt.zip, and place it in the `nltk_data/tokenizers` storage path.
+```text
+Usage: chatchat-config basic [OPTIONS]
 
-The `nltk_data` storage path can be found using `nltk.data.path`.
+  基础配置
 
-Q4: How can I solve the `Resource averaged_perceptron_tagger not found.` error?
+Options:
+  --verbose [true|false]  是否开启详细日志
+  --data TEXT             初始化数据存放路径，注意：目录会清空重建
+  --format TEXT           日志格式
+  --clear                 清除配置
+  --show                  显示配置
+  --help                  Show this message and exit.
+```
 
-A4: Download https://github.com/nltk/nltk_data/blob/gh-pages/packages/taggers/averaged_perceptron_tagger.zip, extract it, and place it in the `nltk_data/taggers` storage path.
+##### 3.2 Use chatchat-config to Modify Corresponding Configuration Parameters
 
-The `nltk_data` storage path can be found using `nltk.data.path`.
+To modify the `default llm` model in `model configuration`, you can execute the following command to view the
+configuration item names:
 
-Q5: Can this project run in Google Colab?
+```shell
+chatchat-config basic --show
+```
 
-A5: You can try running the chatglm-6b-int4 model in Google Colab. Please note that if you want to run the Web UI in Colab, you need to set the `share` parameter in `demo.queue(concurrency_count=3).launch(server_name='0.0.0.0', share=False, inbrowser=False)` to `True`.
+If no configuration item modification is made, the default configuration is as follows:
 
-This issue is related to the system environment. For more details, please refer to [Issues with installing packages using pip in Anaconda](docs/Issue-with-Installing-Packages-Using-pip-in-Anaconda.md).
+```text 
+{
+    "log_verbose": false,
+    "CHATCHAT_ROOT": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat",
+    "DATA_PATH": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data",
+    "IMG_DIR": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/img",
+    "NLTK_DATA_PATH": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/nltk_data",
+    "LOG_FORMAT": "%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
+    "LOG_PATH": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/logs",
+    "MEDIA_PATH": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/media",
+    "BASE_TEMP_DIR": "/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/temp",
+    "class_name": "ConfigBasic"
+}
+```
 
-## DEMO
+##### 3.3 Use chatchat-config to Modify Corresponding Configuration Parameters
 
-Using the question "What are the limitations of ChatGLM-6B and how can they be improved?" as an example:
+To modify the default `llm model` in `model configuration`, you can execute the following command to view the
+configuration item names:
 
-Without using langchain to access local documents:
+```shell
+chatchat-config model --help
+```
 
-> ChatGLM-6B is a chatbot based on GPT-3, and its limitations are mainly reflected in the following aspects:
+You will get:
+
+```text 
+Usage: chatchat-config model [OPTIONS]
+
+  模型配置
+
+Options:
+  --default_llm_model TEXT        默认llm模型
+  --default_embedding_model TEXT  默认embedding模型
+  --agent_model TEXT              agent模型
+  --history_len INTEGER           历史长度
+  --max_tokens INTEGER            最大tokens
+  --temperature FLOAT             温度
+  --support_agent_models TEXT     支持的agent模型
+  --set_model_platforms TEXT      模型平台配置 as a JSON string.
+  --set_tool_config TEXT          工具配置项  as a JSON string.
+  --clear                         清除配置
+  --show                          显示配置
+  --help                          Show this message and exit.
+```
+
+First, view the current `model configuration` parameters:
+
+```shell
+chatchat-config model --show
+```
+
+You will get:
+
+```text 
+{
+    "DEFAULT_LLM_MODEL": "glm4-chat",
+    "DEFAULT_EMBEDDING_MODEL": "bge-large-zh-v1.5",
+    "Agent_MODEL": null,
+    "HISTORY_LEN": 3,
+    "MAX_TOKENS": null,
+    "TEMPERATURE": 0.7,
+    ...
+    "class_name": "ConfigModel"
+}
+```
+
+To modify the `default llm` model to `qwen2-instruct`, execute:
+
+```shell
+chatchat-config model --default_llm_model qwen2-instruct
+```
+
+For more configuration modification help, refer to  [README.md](libs/chatchat-server/README.md)
+
+4. Custom Model Integration Configuration
+
+After completing the above project configuration item viewing and modification, proceed to step 2. Model Inference
+Framework and Load Models and select the model inference framework and loaded models. Model inference frameworks include
+[Xinference](https://github.com/xorbitsai/inference),[Ollama](https://github.com/ollama/ollama),[LocalAI](https://github.com/mudler/LocalAI),[FastChat](https://github.com/lm-sys/FastChat)
+and [One API](https://github.com/songquanpeng/one-api), supporting new Chinese open-source models
+like [GLM-4-Chat](https://github.com/THUDM/GLM-4) and [Qwen2-Instruct](https://github.com/QwenLM/Qwen2)
+
+If you already have an address with the capability of an OpenAI endpoint, you can directly configure it in
+MODEL_PLATFORMS as follows:
+
+```text
+chatchat-config model --set_model_platforms TEXT      Configure model platforms as a JSON string.
+```
+
+- `platform_name` can be arbitrarily filled, just ensure it is unique.
+- `platform_type` might be used in the future for functional distinctions based on platform types, so it should match
+  the platform_name.
+- List the models deployed on the framework in the corresponding list. Different frameworks can load models with the
+  same name, and the project will automatically balance the load.
+- Set up the model
+
+```shell
+$ chatchat-config model --set_model_platforms "[{
+    \"platform_name\": \"xinference\",
+    \"platform_type\": \"xinference\",
+    \"api_base_url\": \"http://127.0.0.1:9997/v1\",
+    \"api_key\": \"EMPT\",
+    \"api_concurrencies\": 5,
+    \"llm_models\": [
+        \"autodl-tmp-glm-4-9b-chat\"
+    ],
+    \"embed_models\": [
+        \"bge-large-zh-v1.5\"
+    ],
+    \"image_models\": [],
+    \"reranking_models\": [],
+    \"speech2text_models\": [],
+    \"tts_models\": []
+}]"
+```
+
+#### 5. Initialize Knowledge Base
+
+> [!WARNING]
+> Before initializing the knowledge base, ensure that the model inference framework and corresponding embedding model
+> are
+> running, and complete the model integration configuration as described in steps 3 and 4.
+
+```shell
+cd # Return to the original directory
+chatchat-kb -r
+```
+
+Specify text-embedding model for initialization (if needed):
+
+```
+cd # Return to the original directory
+chatchat-kb -r --embed-model=text-embedding-3-smal
+```
+
+Successful output will be:
+
+```text 
+
+----------------------------------------------------------------------------------------------------
+知识库名称      ：samples
+知识库类型      ：faiss
+向量模型：      ：bge-large-zh-v1.5
+知识库路径      ：/root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/knowledge_base/samples
+文件总数量      ：47
+入库文件数      ：42
+知识条目数      ：740
+用时            ：0:02:29.701002
+----------------------------------------------------------------------------------------------------
+
+总计用时        ：0:02:33.414425
+
+```
+
+The knowledge base path is in the knowledge_base directory under the path pointed by the *DATA_PATH* variable in
+step `3.2`:
+
+```shell
+(chatchat) [root@VM-centos ~]#  ls /root/anaconda3/envs/chatchat/lib/python3.11/site-packages/chatchat/data/knowledge_base/samples/vector_store
+bge-large-zh-v1.5  text-embedding-3-small
+```
+
+##### Frequently asked questions
+
+##### 1. Stuck when rebuilding the knowledge base or adding knowledge files under Windows
+
+This issue often occurs in newly created virtual environments and can be confirmed through the following methods:
+
+`from unstructured.partition.auto import partition`
+
+If the statement gets stuck and cannot be executed, the following command can be executed:
+
+```shell
+pip uninstall python-magic-bin
+# check the version of the uninstalled package
+pip install 'python-magic-bin=={version}'
+```
+
+Then follow the instructions in this section to recreate the knowledge base.
+
+#### 6. Start the Project
+
+```shell
+chatchat -a
+```
+
+Successful startup output:
+
+![WebUI](docs/img/langchain_chatchat_webui.png)
+
+> [!WARNING]
+> As the `DEFAULT_BIND_HOST` of the chatchat-config server configuration is set to `127.0.0.1` by default, it cannot be
+> accessed through other IPs.
 >
->   1. Language model accuracy: Although GPT-3 is a large language model with relatively high accuracy, it still has some limitations. For instance, it may not be able to accurately understand certain dialects, accents, or complex sentence structures.
->   2. Completeness of the knowledge graph: GPT-3 can generate some knowledge graphs, but its completeness and accuracy may not be sufficient. For example, it may struggle to accurately understand specific domain expertise and terminology.
->   3. Coherence of dialogue generation: While GPT-3 can generate somewhat coherent dialogues, they may not always be natural. For instance, it may generate false, incoherent dialogue or misinterpret the user's intent.
+> To modify, refer to the following method:
+> <details>
+> <summary>Instructions</summary>
 >
->   To improve ChatGLM-6B, consider the following aspects:
->
->   1. Enhance the accuracy of the language model: The accuracy of the language model can be improved by increasing the training data, using better language model architectures, and optimizing the model training process.
->   2. Strengthen the integrity of the knowledge graph: The integrity of the knowledge graph can be enhanced by increasing its dimensions, employing better knowledge graph construction methods, and optimizing the knowledge graph's matching algorithm.
->   3. Boost the coherence of dialogue generation: The coherence of dialogue generation can be improved by augmenting the context information of the dialogue generation model, utilizing better context information extraction methods, and optimizing the dialogue generation model's algorithm.
->   4. Incorporate more human feedback: Human feedback can help ChatGLM-6B better understand users' intentions and needs, thereby improving the quality and accuracy of dialogue generation. More human feedback can be introduced by involving more human agents and using human feedback collectors.
+> ```shell
+> chatchat-config server --show
+> ```
+> You will get:
+> ```text 
+> {
+>     "HTTPX_DEFAULT_TIMEOUT": 300.0,
+>     "OPEN_CROSS_DOMAIN": true,
+>     "DEFAULT_BIND_HOST": "127.0.0.1",
+>     "WEBUI_SERVER_PORT": 8501,
+>     "API_SERVER_PORT": 7861,
+>     "WEBUI_SERVER": {
+>         "host": "127.0.0.1",
+>         "port": 8501
+>     },
+>     "API_SERVER": {
+>         "host": "127.0.0.1",
+>         "port": 7861
+>     },
+>     "class_name": "ConfigServer"
+> }
+> ```
+> To access via the machine's IP (such as in a Linux system), change the listening address to `0.0.0.0`.
+> ```shell
+> chatchat-config server --default_bind_host=0.0.0.0
+> ```
+> You will get:
+> ```text 
+> {
+>     "HTTPX_DEFAULT_TIMEOUT": 300.0,
+>     "OPEN_CROSS_DOMAIN": true,
+>     "DEFAULT_BIND_HOST": "0.0.0.0",
+>     "WEBUI_SERVER_PORT": 8501,
+>     "API_SERVER_PORT": 7861,
+>     "WEBUI_SERVER": {
+>         "host": "0.0.0.0",
+>         "port": 8501
+>     },
+>     "API_SERVER": {
+>         "host": "0.0.0.0",
+>         "port": 7861
+>     },
+>     "class_name": "ConfigServer"
+> }
+> ```
+> </details>
 
-ChatGLM's answer after using LangChain to access the README.md file of the ChatGLM-6B project:
->ChatGLM-6B is a deep learning-based natural language processing model that excels at answering questions. However, it also has some limitations, as follows:
->1. Limited language understanding: ChatGLM-6B has been primarily trained on Chinese natural language, and its understanding of other languages may be limited.
->2. Insufficient knowledge base: The training dataset of ChatGLM-6B contains only a Chinese corpus, so it may not be able to answer non-Chinese questions or queries in specific domains.
->3. Limited data volume: ChatGLM-6B's training dataset has only a few million records, which may hinder its ability to answer very specific or complex questions.
->
->To improve ChatGLM-6B, consider the following aspects:
->1. Expand language knowledge: Learn natural language processing techniques in other languages to broaden the model's language understanding capabilities.
->2. Broaden the knowledge base: Collect more Chinese corpora or use datasets in other languages to expand the model's knowledge base.
->3. Increase data volume: Use larger datasets to train ChatGLM-6B, which can improve the model's performance.
->4. Introduce more evaluation metrics: Incorporate additional evaluation metrics to assess the model's performance, which can help identify the shortcomings and limitations of ChatGLM-6B.
->5. Enhance the model architecture: Improve ChatGLM-6B's model architecture to boost its performance and capabilities. For example, employ larger neural networks or refined convolutional neural network structures.
+### Migration from Older Versions
 
-## Roadmap
+* The structure of 0.3.x has changed significantly, it is strongly recommended to redeploy according to the
+  documentation.
+  The following guide does not guarantee 100% compatibility and success. Remember to backup important data in advance!
 
-- [x] Implement LangChain + ChatGLM-6B for local knowledge application
-- [x] Unstructured file access based on langchain
-   - [x].md
-   - [x].pdf
-   - [x].docx
-   - [x].txt
-- [ ] Add support for more LLM models
-   - [x] THUDM/chatglm-6b
-   - [x] THUDM/chatglm-6b-int4
-   - [x] THUDM/chatglm-6b-int4-qe
-- [ ] Add Web UI DEMO
-   - [x]  Implement Web UI DEMO using Gradio
-   - [x] Add output and error messages
-   - [ ] Citation callout
-- [ ] Use FastAPI to implement API deployment method and develop a Web UI DEMO for API calls
+- First configure the operating environment according to the steps in `Installation`.
+- Configure `DATA` and other options.
+- Copy the knowledge_base directory of the 0.2.x project to the configured `DATA` directory.
+
+---
+
+## License
+
+The code of this project follows the [Apache-2.0](LICENSE) agreement.
+
+## Project Milestones
+
++ `April 2023`: `Langchain-ChatGLM 0.1.0` released, supporting local knowledge base question and answer based on
+  ChatGLM-6B model.
++ `August 2023`: `Langchain-ChatGLM` renamed to `Langchain-Chatchat`, released `0.2.0` version, using `fastchat` as
+  model loading solution, supporting more models and databases.
++ `October 2023`: `Langchain-Chatchat 0.2.5` released, launching Agent content, open source project won the third prize
+  in the hackathon held by `Founder Park & ​​Zhipu AI & Zilliz`.
++ `December 2023`: `Langchain-Chatchat` open source project received more than **20K** stars.
++ `June 2024`: `Langchain-Chatchat 0.3.0` released, bringing a new project architecture.
+
++ 🔥 Let us look forward to the future story of Chatchat ···
+
+## Contact Us
+
+### Telegram
+
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white "langchain-chatchat")](https://t.me/+RjliQ3jnJ1YyN2E9)
+
+### Project Exchange Group
+
+<img src="docs/img/qr_code_109.jpg" alt="二维码" width="300" />
+
+🎉 Langchain-Chatchat project WeChat exchange group, if you are also interested in this project, welcome to join the
+group chat to participate in the discussion.
+
+### Official Account
+
+<img src="docs/img/official_wechat_mp_account.png" alt="二维码" width="300" />
+
+🎉 Langchain-Chatchat project official public account, welcome to scan the code to follow.
